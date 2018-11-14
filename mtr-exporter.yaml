@@ -1,0 +1,51 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mtr-exporter
+  namespace: monitoring
+  labels:
+    k8s-app: mtr-exporter
+spec:
+  externalName: quincha01
+  type: ExternalName
+  ports:
+  - name: metrics
+    port: 9116
+    protocol: TCP
+    targetPort: 9116
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: mtr-exporter
+  namespace: monitoring
+  labels:
+    k8s-app: mtr-exporter
+subsets:
+- addresses:
+  - ip: 192.168.1.126
+  ports:
+  - name: metrics
+    port: 9116
+    protocol: TCP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mtr-exporter
+  namespace: monitoring
+  labels:
+    k8s-app: mtr-exporter
+spec:
+  selector:
+    matchLabels:
+      k8s-app: mtr-exporter
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  endpoints:
+  - port: metrics
+    interval: 10s
+    honorLabels: true
+    path: /metrics
